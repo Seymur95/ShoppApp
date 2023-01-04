@@ -1,31 +1,59 @@
+import React, { Component } from 'react'
 import Navi from "./components/Navi";
 import Categorylist from "./components/Categorylist";
 import Productlist from "./components/Productlist";
-import { Badge, Col, Container, Row } from "reactstrap";
+import { Col, Container, Row } from "reactstrap";
 
 
+export default class App extends Component {
+  state = {
+    categories: [],
+    currentCategory: '',
+    products: []
+  }
 
-function App() {
-  return (
-    <Container>
-      <Row>
-        <Navi  color='dark' dark='true' expand='sm'/>
-      </Row>
-      <Row>
-        <Col xs="4">
-        <Badge color="danger" style={{width:'100%'}}>
-        <Categorylist title='Categorylist' />
-        </Badge>
-        </Col>
-        <Col xs="8">
-        <Badge color="primary" style={{width:'100%'}}>
-        <Productlist />
-        </Badge>
-        </Col>
-      </Row>
-    </Container>
+  changeCategory = (category) => {
+    this.setState({ currentCategory: category.categoryName })
+    this.getProducts(category.id)
+  }
 
-  );
+  getCategories = () => {
+
+    fetch('http://localhost:3000/categories').then(response => response.json())
+      .then(responseData => this.setState({ categories: responseData }))
+
+  }
+  componentDidMount() {
+    this.getCategories()
+    this.getProducts()
+  }
+
+  getProducts = (categoryId) => {
+    let url = 'http://localhost:3000/products'
+    if (categoryId) {
+      url += '?categoryId=' + categoryId
+    }
+    fetch(url).then(response => response.json())
+      .then(responseData => this.setState({ products: responseData }))
+  }
+
+  render() {
+    return (
+      <Container>
+        <Row className="mb-2">
+          <Navi color='dark' dark={true} expand='sm' />
+        </Row>
+        <Row>
+          <Col xs="4">
+            <Categorylist categories={this.state.categories} currentCategory={this.state.currentCategory} changeCategory={this.changeCategory} />
+          </Col>
+          <Col xs="8">
+            <Productlist products={this.state.products} />
+          </Col>
+        </Row>
+      </Container>
+    )
+  }
 }
 
-export default App;
+
